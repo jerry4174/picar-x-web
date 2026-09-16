@@ -96,10 +96,6 @@ http://<your-raspberry-pi-ip>:5000
 
 Distributed under the MIT License. Feel free to modify and share!
 
-```
 
----
-
-Sleep well, Jiří! Everything is in order for you to update this tomorrow.
 
 ```
