@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no">
+
+<title>PiCar-X</title>
+
+</head>
+
+<body>
+
+<!-- Floating battery bar and Motion Detection Toggle-->
+<div class="top-status-bar">
+    <div id="battery-box">
+        Battery: <span id="voltage-display">--</span>
+        (<span id="status-display">Checking...</span>)
+    </div>
+
+    <div id="motionBox">
+        <span>Dog Guard:</span>
+        <button id="motionBtn" onclick="toggleMotionGuard()">OFF</button>
+    </div>
+
+    <button class="batt-btn" onclick="checkVoltage()">Check Voltage</button>
+</div>
+
+<!-- CAMERA -->
+
+<img id="camera"
+     src="/camera"
+     alt="PiCar-X camera">
+
+
+<!-- CONTROLS -->
+
+<!-- jerry 20260811 -->
+<!-- CAMERA D-PAD -->
+
+
+
+<div id="cameraControls">
+    <button onclick="moveCamera(0, 5)">▲</button>
+    <div>
+        <button onclick="moveCamera(5, 0)">◀</button>
+        <button onclick="moveCamera(0, 0, true)">●</button>
+        <button onclick="moveCamera(-5, 0)">▶</button>
+    </div>
+    <button onclick="moveCamera(0, -5)">▼</button>
+</div>
+
+
+
+
+
+<div id="controls">
+
+
+    <!-- JOYSTICK -->
+
+    <div id="joystick">
+
+        <div id="stick"></div>
+
+    </div>
+
+
+    <!-- STOP -->
+
+    <button id="stop">
+        STOP
+    </button>
+
+
+    <!-- SPEED LIMIT -->
+
+    <div id="speedBox">
+
+        Maximum speed:
+        <span id="speedValue">40</span>%
+
+        <input
+            id="speed"
+            type="range"
+            min="10"
+            max="100"
+            value="40">
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// =====================================================
+// Variables
+// =====================================================
+
+const joystick =
+    document.getElementById("joystick");
+
+const stick =
+    document.getElementById("stick");
+
+const stopButton =
+    document.getElementById("stop");
+
+const speedSlider =
+    document.getElementById("speed");
+
+const speedValue =
+    document.getElementById("speedValue");
+
+
+let joystickActive = false;
+
+let commandTimer = null;
+
+let currentSpeed = 40;
+
+let lastAngle = 0;
+
+let lastThrottle = 0;
+
+
+// =====================================================
+// Utility
+// =====================================================
+
+let motionEnabled = false;
+
+function toggleMotionGuard() {
+    motionEnabled = !motionEnabled;
+    const btn = document.getElementById('motionBtn');
+
+    fetch('/toggle_motion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: motionEnabled })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.enabled) {
+            btn.innerText = "ON";
+            btn.style.backgroundColor = "#4CAF50"; // Green when active
+        } else {
+            btn.innerText = "OFF";
+            btn.style.backgroundColor = "#555555"; // Grey when off
+        }
+    });
+}
+
+function send(url, data = null) {
+
+    const options = {
+        method: "POST"
+    };
+
+    if (data !== null) {
+
+        options.headers = {
+            "Content-Type": "application/json"
+        };
+
+        options.body =
+            JSON.stringify(data);
+    }
+
+    fetch(url, options)
+        .catch(() => {});
+}
+
+// You can safely delete or comment this out:
+// =====================================================
+// Heartbeat Ping
+// =====================================================
+
+// Only ping when idling; active driving commands already update the heartbeat
+//setInterval(() => {
+//    if (!joystickActive) {
+//        send("/heartbeat");
+//    }
+// }, 500);
+
+
+// =====================================================
+// STOP
+// =====================================================
+
+
+function moveCamera(panStep, tiltStep, reset = false) {
+    send("/camera_move", {
+        pan_step: panStep,
+        tilt_step: tiltStep,
+        reset: reset
+    });
+}
+
+function stopCar() {
+
+    if (commandTimer !== null) {
+
+        clearInterval(commandTimer);
+
+        commandTimer = null;
+    }
+
+    send("/stop");
+
+    lastThrottle = 0;
+}
+
+
+// =====================================================
+// Joystick position
+// =====================================================
+
+function joystickPosition(event) {
+
+    const rect =
+        joystick.getBoundingClientRect();
+
+    const centerX =
+        rect.left + rect.width / 2;
+
+    const centerY =
+        rect.top + rect.height / 2;
+
+
+    let x =
+        event.clientX - centerX;
+
+    let y =
+        event.clientY - centerY;
+
+
+    const radius =
+        rect.width / 2 - 40;
+
+
+    const distance =
+        Math.sqrt(x * x + y * y);
+
+
+    if (distance > radius) {
+
+        x =
+            x / distance * radius;
+
+        y =
+            y / distance * radius;
+    }
+
+
+    // Move visual stick
+
+    stick.style.left =
+        `calc(50% + ${x}px)`;
+
+    stick.style.top =
+        `calc(50% + ${y}px)`;
+
+
+    // ---------------------------------------------
+    // Steering
+    // ---------------------------------------------
+
+    let steering =
+        (x / radius) * 30;
+
+    steering =
+        Math.max(-30,
+        Math.min(30, steering));
+
+
+    // ---------------------------------------------
+    // Throttle
+    // ---------------------------------------------
+
+    // Up = positive
+    // Down = negative
+
+    let throttle =
+        -y / radius;
+
+    throttle =
+        Math.max(-1,
+        Math.min(1, throttle));
+
+
+    lastAngle = steering;
+
+    lastThrottle = throttle;
+
+
+    return throttle;
+}
+
+
+// =====================================================
+// Drive
+// =====================================================
+
+function drive() {
+
+    if (!joystickActive)
+        return;
+
+    if (Math.abs(lastThrottle) < 0.08) {
+
+        send("/stop");
+
+        return;
+    }
+
+    send("/drive", {
+        throttle: lastThrottle
+    });
+
+    send("/steer", {
+        angle: lastAngle
+    });
+}
+
+// Fetch latest battery voltage from Flask backend
+function checkVoltage() {
+    const btn = document.querySelector('.batt-btn');
+    const voltSpan = document.getElementById('voltage-display');
+    const statusSpan = document.getElementById('status-display');
+
+    if (btn) {
+        btn.innerText = "Checking...";
+        btn.disabled = true;
+    }
+
+    fetch('/api/battery')
+        .then(response => response.json())
+        .then(data => {
+            if (data.voltage !== undefined) {
+                if (voltSpan) voltSpan.innerText = `${data.voltage}V`;
+            }
+
+            if (data.status) {
+                if (statusSpan) {
+                    statusSpan.innerText = data.status;
+                    statusSpan.style.color = data.healthy ? '#4CAF50' : '#ff4d4d';
+                }
+            }
+        })
+        .catch(err => console.error("Error fetching battery status:", err))
+        .finally(() => {
+            if (btn) {
+                btn.innerText = "Check Voltage";
+                btn.disabled = false;
+            }
+        });
+}
+
+// Auto-refresh battery status every 30 seconds
+setInterval(checkVoltage, 30000);
+
+// Run initial check on page load
+document.addEventListener('DOMContentLoaded', checkVoltage);
+
+
+// =====================================================
+// Joystick START
+// =====================================================
+
+joystick.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.preventDefault();
+
+        joystickActive = true;
+
+        joystick.setPointerCapture(
+            event.pointerId
+        );
+
+        joystickPosition(event);
+
+        drive();
+
+
+        commandTimer =
+            setInterval(
+                drive,
+                80
+            );
+    }
+);
+
+
+// =====================================================
+// Joystick MOVE
+// =====================================================
+
+joystick.addEventListener(
+    "pointermove",
+    function(event) {
+
+        if (!joystickActive)
+            return;
+
+        event.preventDefault();
+
+        joystickPosition(event);
+    }
+);
+
+
+// =====================================================
+// Joystick END
+// =====================================================
+
+function joystickEnd(event) {
+
+    if (!joystickActive)
+        return;
+    console.log("JOYSTICK END:", event.type);
+    joystickActive = false;
+
+    try {
+
+        joystick.releasePointerCapture(
+            event.pointerId
+        );
+
+    } catch (e) {}
+
+
+    stopCar();
+
+
+    // Return stick to center
+
+    stick.style.left = "50%";
+    stick.style.top = "50%";
+
+    lastAngle = 0;
+}
+
+
+joystick.addEventListener(
+    "pointerup",
+    joystickEnd
+);
+
+joystick.addEventListener(
+    "pointercancel",
+    joystickEnd
+);
+
+
+// =====================================================
+// STOP button
+// =====================================================
+
+stopButton.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.preventDefault();
+
+        stopCar();
+
+        stick.style.left = "50%";
+        stick.style.top = "50%";
+    }
+);
+
+
+// =====================================================
+// Maximum speed
+// =====================================================
+
+speedSlider.addEventListener(
+    "input",
+    function() {
+
+        currentSpeed =
+            parseInt(this.value);
+
+        speedValue.textContent =
+            currentSpeed;
+
+        send("/speed", {
+            speed: currentSpeed
+        });
+    }
+);
+
+
+// =====================================================
+// Browser loses focus
+// =====================================================
+
+window.addEventListener( "blur", function() { console.log("WINDOW BLUR → STOP"); stopCar(); } );
+
+
+// =====================================================
+// Initial speed
+// =====================================================
+
+send("/speed", {
+    speed: currentSpeed
+});
+
+
+</script>
+
+
+
+
+
+</body>
+
+</html>

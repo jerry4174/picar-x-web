@@ -1,0 +1,280 @@
+
+.battery-card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-width: 250px; text-align: center; font-family: Arial, sans-serif; }
+        .btn { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+        .critical { color: red; font-weight: bold; }
+        .healthy { color: green; }
+
+.top-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 44px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    z-index: 9999; /* Forces it above all other elements */
+    border-bottom: 1px solid #333;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    background-color: #1a1a1a;
+    padding: 10px 15px !important;
+    box-sizing: border-box;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.battery-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+#battery-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+}
+
+#status-display {
+    color: #4CAF50; /* Green for healthy status */
+}
+
+.batt-btn {
+    font-weight: 500;
+    transition: background 0.2s ease;
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555555;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.batt-btn:hover {
+    background-color: #444444;
+}
+
+.batt-btn:disabled { background: #4f4f4f; cursor: not-allowed; }
+.critical { color: #eb5757; font-weight: bold; }
+.healthy { color: #27ae60; font-weight: bold; }
+
+
+/* 1. Force the page to allow vertical scrolling on PC */
+html, body {
+  height: auto !important;
+  min-height: 100vh;
+  overflow-y: auto !important; /* Enables scrolling on desktop */
+  margin: 0;
+  padding: 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #121212; /* Dark theme matching your interface */
+  color: #ffffff;
+}
+
+
+
+/* -------------------------
+   Camera
+------------------------- */
+
+/* 2. Limit camera image height so it doesn't push controls off-screen */
+#camera {
+  max-width: 100%;
+  max-height: 45vh; /* Prevents image from hogging full vertical screen space */
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+
+/* -------------------------
+   Control area
+------------------------- */
+/* 3. Ensure controls block stays visible and relative */
+#controls {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px;           /* Tight spacing between joystick, STOP, and slider */
+  height: auto !important; /* Prevents container from expanding vertically */
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+#cameraControls button:active {
+    background: #666;
+}
+
+#cameraControls {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+/* Keep Left, Center, and Right buttons side-by-side */
+#cameraControls > div {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+}
+
+
+#controls {
+    width: 100%;
+    max-width: 800px;
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    position: relative;
+}
+
+
+/* -------------------------
+   Joystick
+------------------------- */
+
+#joystick {
+    align-items: center;
+    width: 190px;
+    height: 190px;
+
+    border-radius: 50%;
+
+    background: #333;
+
+    border: 3px solid #666;
+
+    position: relative;
+
+    touch-action: none;
+}
+
+/* 4. Keep joystick container bounded */
+#joystick {
+  position: relative !important;
+  display: block !important;
+  margin: 15px auto !important;
+  left: 0 !important;                  /* Resets any absolute left offsets */
+  transform: none !important;          /* Prevents script transform offsets */
+  touch-action: none; /* Prevents touch drag interference on mobile */
+}
+
+
+#stick {
+
+    width: 75px;
+    height: 75px;
+
+    border-radius: 50%;
+
+    background: #888;
+
+    border: 3px solid #aaa;
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    pointer-events: none;
+}
+
+
+/* -------------------------
+   STOP button
+------------------------- */
+
+#stop {
+
+    width: 150px;
+    height: 75px;
+
+    border-radius: 20px;
+
+    border: none;
+
+    background: #d00000;
+
+    color: white;
+
+    font-size: 25px;
+    font-weight: bold;
+
+    touch-action: manipulation;
+    margin-bottom: 60px;
+}
+
+#stop:active {
+    transform: scale(0.95);
+}
+
+
+/* -------------------------
+   Speed
+------------------------- */
+
+#speedBox {
+
+    position: absolute;
+
+    bottom: 10px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 90%;
+
+    max-width: 500px;
+
+    text-align: center;
+
+    font-size: 16px;
+}
+
+
+
+#speed {
+
+    width: 100%;
+}
+
+
+/* -------------------------
+   Landscape
+------------------------- */
+
+@media (orientation: landscape) {
+
+    #camera {
+        height: 100vh;
+        width: auto;
+        max-width: 60%;
+        aspect-ratio: 4 / 3;
+    }
+
+    #controls {
+        height: 100vh;
+        flex: none;
+    }
+
+}
+
