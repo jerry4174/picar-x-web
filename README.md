@@ -1,8 +1,3 @@
-Here is a complete, polished `README.md` formatted specifically for your **`picar-x-web`** repository. You can copy this directly into `/home/picar-web/README.md` and commit it tomorrow.
-
----
-
-```markdown
 # PiCar-X Flask Web Controller
 
 A responsive, lightweight web dashboard for controlling the **SunFounder PiCar-X** (powered by a Raspberry Pi 3) in real-time. Built with **Python**, **Flask**, and **OpenCV**, this interface provides low-latency MJPEG video streaming, camera servo controls, and battery safety monitoring.
