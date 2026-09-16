@@ -75,7 +75,7 @@ chmod +x start.sh
 ```
 
 
-5. Open your web browser and navigate to:
+5. **Open your web browser and navigate to:**
 ```text
 http://<your-raspberry-pi-ip>:5000
 
