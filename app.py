@@ -3,17 +3,17 @@
 
 Function	Status
 ------------------
-Proportional joystick	✅
-Progressive speed curve	✅
+Proportional joystick            	✅
+Progressive speed curve	            ✅
 Smooth driving without false stops	✅
-Forward / reverse	✅
-Steering	✅
-Ultrasonic emergency stop	✅
-Reverse escape	✅
-STOP button	✅
-Cliff detection	✅ tested at table edge
-Battery check ✅
-warning beep with 3 Wave's ✅
+Forward / reverse	                ✅
+Steering	                        ✅
+Ultrasonic emergency stop	        ✅
+Reverse escape	                    ✅
+STOP button	                        ✅
+Cliff detection	                    ✅ 
+Battery check                       ✅
+warning beep with 3 Wave's          ✅
 *****************************************************************
 
 '''
