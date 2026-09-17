@@ -12,8 +12,8 @@ Ultrasonic emergency stop	✅
 Reverse escape	✅
 STOP button	✅
 Cliff detection	✅ tested at table edge
-Battery check
-warning beep with 3 Wave's
+Battery check ✅
+warning beep with 3 Wave's ✅
 *****************************************************************
 
 '''
