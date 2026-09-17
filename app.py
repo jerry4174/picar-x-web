@@ -1,8 +1,8 @@
 '''
 ****************** Functionality ***********************
 
-Function	Status
-------------------
+Function	                    Status
+----------------------------------------
 Proportional joystick            	✅
 Progressive speed curve	            ✅
 Smooth driving without false stops	✅
