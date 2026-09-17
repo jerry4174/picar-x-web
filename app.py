@@ -1,5 +1,5 @@
 '''
-****************** Functionality 20260829 ***********************
+****************** Functionality ***********************
 
 Function	Status
 ------------------
@@ -13,7 +13,7 @@ Reverse escape	✅
 STOP button	✅
 Cliff detection	✅ tested at table edge
 Battery check
-warning beep with 3 Wav's
+warning beep with 3 Wave's
 *****************************************************************
 
 '''
