@@ -94,7 +94,7 @@ http://<your-raspberry-pi-ip>:5000
 
 ## License
 
-Distributed under the MIT License. Feel free to modify and share! Jerry was here!
+Distributed under the MIT License. Feel free to modify and share!
 
 
 
