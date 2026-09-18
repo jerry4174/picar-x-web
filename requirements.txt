@@ -119,7 +119,6 @@ rfc3986-validator==0.1.1
 rfc3987==1.3.8
 rich==13.9.4
 rlPyCairo==0.3.0
-robot_hat @ file:///home/jiri/robot-hat
 roman==5.0
 rpds-py==0.21.0
 rpi-keyboard-config==1.0
@@ -316,7 +315,6 @@ uc-micro-py==1.0.3
 uritemplate==4.1.1
 urllib3==2.3.0
 videodev2==0.0.4
-vilib @ file:///home/jiri/vilib
 vosk==0.3.45
 webcolors==1.13
 webencodings==0.5.1
@@ -325,3 +323,6 @@ Werkzeug==3.1.8
 wheel==0.48.0
 yarl==1.24.5
 zipp==3.21.0
+git+https://github.com/sunfounder/robot-hat.git
+git+https://github.com/sunfounder/vilib.git
+git+https://github.com/sunfounder/picar-x.git
