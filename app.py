@@ -1,5 +1,5 @@
 '''
-****************** Functionality ************************
+****************** Functionality ***********************
 
 Function	                    Status
 ----------------------------------------
@@ -13,13 +13,12 @@ Reverse escape	                    ✅
 STOP button	                        ✅
 Cliff detection	                    ✅ 
 Battery check                       ✅
-warning beep with 3 Wave's          ✅
+warning beep with 4 sounds          ✅
 *****************************************************************
 
 '''
 
 
-import warnings
 from robot_hat import utils
 from flask import Flask, render_template, jsonify, request, Response
 from picarx import Picarx
@@ -31,7 +30,7 @@ from picarx.music import Music
 import os
 import subprocess
 import numpy as np
-import socket
+
 
 # Set global socket timeout to prevent zombie connections from hanging Flask
 # socket.setdefaulttimeout(10)

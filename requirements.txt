@@ -79,7 +79,6 @@ pathvalidate==3.3.1
 pexpect==4.9.0
 pgzero==1.2.1
 picamera2==0.3.36
-picar-x @ file:///home/jiri/vilib/picar-x
 pidng==4.0.9
 piexif==1.1.3
 pillow==11.1.0
