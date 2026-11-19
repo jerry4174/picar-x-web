@@ -326,3 +326,5 @@ zipp==3.21.0
 git+https://github.com/sunfounder/robot-hat.git
 git+https://github.com/sunfounder/vilib.git
 git+https://github.com/sunfounder/picar-x.git
+
+speechrecognition

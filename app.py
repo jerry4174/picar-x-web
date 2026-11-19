@@ -14,9 +14,11 @@ STOP button	                        ✅
 Cliff detection	                    ✅ 
 Battery check                       ✅
 warning beep with 4 sounds          ✅
+Sound and Voice                     ✅       18.11.2026
 *****************************************************************
 
 '''
+
 
 
 from robot_hat import utils
@@ -26,25 +28,33 @@ from picamera2 import Picamera2
 import threading
 import time
 import cv2
-from picarx.music import Music
 import os
 import subprocess
+import uuid
 import numpy as np
+from picarx.stt import Vosk
+from picarx.tts import Pico2Wave
+
+
+
+
+
+
 
 
 # Set global socket timeout to prevent zombie connections from hanging Flask
 # socket.setdefaulttimeout(10)
 
 # Set ALSA sound hardware volume to maximum 0dB gain
-os.system('amixer -c sndrpihifiberry sset "robot-hat speaker" 100% > /dev/null 2>&1')
-
-# Create the music instance
-music = Music()
+os.system('amixer -c sndrpihifiberry sset "robot-hat speaker" 94% > /dev/null 2>&1')
 
 app = Flask(__name__)
+
+
 CRITICAL_VOLTAGE = 7.15
 MOTION_THRESHOLD = 500000  # Adjust sensitivity based on room lighting/distance
 COOLDOWN_SECONDS = 5       # Minimum time between motion alerts
+WAKE_WORDS = ["wake up"]
 
 motion_detection_enabled = False
 
@@ -52,10 +62,20 @@ prev_gray = None
 last_alert_time = 0
 
 # Use absolute path to ensure root/sudo can open the file cleanly
-SOUND_START = '/home/jiri/picar-x/sounds/start.wav'
-SOUND_CLIFF = '/home/jiri/picar-x/sounds/cliff.wav'
-SOUND_OBSTACLE = '/home/jiri/picar-x/sounds/obstacle.wav'
-SOUND_DOG = '/home/jiri/picar-x/sounds/dog.wav'
+SOUND_START = '/home/jiri/picar-web/sounds/start.wav'
+SOUND_CLIFF = '/home/jiri/picar-web/sounds/cliff.wav'
+SOUND_OBSTACLE = '/home/jiri/picar-web/sounds/obstacle.wav'
+SOUND_DOG = '/home/jiri/picar-web/sounds/dog.wav'
+SOUND_HORN = '/home/jiri/picar-web/sounds/horn.wav'
+
+
+# =====================================================
+# Speak and Voice Recognition
+# =====================================================
+stt = Vosk(language="en-us")
+tts = Pico2Wave()
+tts.set_lang('en-US')
+
 
 
 # =====================================================
@@ -84,6 +104,127 @@ cliff_stop = False
 # Current motor state:
 # "stopped", "forward", "backward"
 motion_state = "stopped"
+
+# =====================================================
+# Audio Speed Control
+# =====================================================
+
+def speak_with_speed(text, speed_factor=0.9, wait=True):
+    tag = uuid.uuid4().hex[:8]
+    wav_file = f"/tmp/pico_{tag}.wav"
+    mod_file = f"/tmp/pico_mod_{tag}.wav"
+
+    try:
+        subprocess.run(["pico2wave", "-w", wav_file, text], check=True)
+        subprocess.run(
+            ["sox", wav_file, mod_file, "tempo", "-s", str(speed_factor)],
+            check=True
+        )
+
+        proc = subprocess.Popen(
+            ["aplay", "-D", "robothat", mod_file],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        if wait:
+            proc.wait()
+    except Exception as e:
+        print(f"Speech/SoX error: {e}", flush=True)
+    finally:
+        for f in (wav_file, mod_file):
+            if os.path.exists(f):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+
+
+# =====================================================
+# Voice ControlThe DOG Motion
+# =====================================================
+def voice_control():
+    try:
+        while True:
+            # --- wait for wake word once ---
+            stt.wait_until_heard(WAKE_WORDS)
+            print("Wake word detected. Listening for commands... (say 'sleep' to pause)")
+        #    tts.say("I am here, I am your robot car")
+            speak_with_speed("Hello! I am here, I am your robot car.", speed_factor=0.5)
+
+            # --- command loop: multiple commands after one wake ---
+            while True:
+                res = stt.listen(stream=False)
+                text = res.get("text", "") if isinstance(res, dict) else str(res)
+                text = text.lower().strip()
+                if not text:
+                    continue
+
+                print("Heard:", text)
+
+
+
+                if "sleep" in text:
+                    # pause command mode; go back to wait for wake word
+        #            px.stop();
+        #            px.set_dir_servo_angle(0)
+                    print("Sleeping. Say 'wake up' to wake me again.")
+                    tts.say("I am sleeping!")
+        #           speak_with_speed("I am sleeping!", speed_factor=0.5)
+                    break
+
+                elif "horn" in text or "sound" in text:
+                    play_warning_beep(SOUND_HORN)
+
+                elif "forward" in text:
+                    px.set_dir_servo_angle(0)
+                    px.forward(30);
+                    time.sleep(1);
+                    px.stop()
+
+
+
+                elif "reverse" in text or "back" in text:
+                    px.set_dir_servo_angle(0)
+                    px.backward(30);
+                    time.sleep(1);
+                    px.stop()
+
+                elif "go" in text:
+                    px.set_dir_servo_angle(0)
+
+                    # Drive forward for 3 seconds, but check safety and allow breaking out early
+                    start_time = time.time()
+                    while time.time() - start_time < 3:
+                        # Use the safe wrapper function that checks obstacle_stop / cliff_stop
+                        if not forward(30):
+                            print("go Movement blocked or interrupted by safety watchdog!")
+                            break
+                        time.sleep(0.1)
+
+                    stop()  # Safely stop motors
+
+                elif "left" in text:
+                    px.set_dir_servo_angle(-25)
+                    px.forward(30);
+                    time.sleep(1)
+                    px.stop();
+                    px.set_dir_servo_angle(0)
+
+                elif "right" in text:
+                    px.set_dir_servo_angle(25)
+                    px.forward(30);
+                    time.sleep(1)
+                    px.stop();
+                    px.set_dir_servo_angle(0)
+                # (ignore other words)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        px.stop();
+        px.set_dir_servo_angle(0)
+        print("Stopped and centered. Bye.")
+
 
 # =====================================================
 # The DOG Motion
@@ -696,11 +837,16 @@ if __name__ == "__main__":
         daemon=True
     )
 
+    voice = threading.Thread(
+        target=voice_control,
+        daemon=True
+    )
 
 
     watchdog.start()
     cliff.start()
     safety.start()
+    voice.start()
     print("")
     print("================================")
     print(" PiCar-X Web Controller")
@@ -713,7 +859,11 @@ if __name__ == "__main__":
     print("Cliff safety: ACTIVE")
     print(f"Safety distance: {SAFETY_DISTANCE} cm")
     print("")
+    print('Say "wake up" to wake me up! Then say: forward / reverse / left / right. Say "sleep" to stop listening.')
+ #   tts.say("Hello! I am your Robot car.")
+    speak_with_speed("Hello! I am your Robot car.", speed_factor=0.5, wait=True)
     play_warning_beep(SOUND_START)
+
 
     if __name__ == '__main__':
         try:
@@ -724,6 +874,7 @@ if __name__ == "__main__":
                 threaded=True,
                 use_reloader=False  # Prevents duplicate hardware initialization
             )
+
         except KeyboardInterrupt:
             print("\nShutdown signal received...")
         finally:
