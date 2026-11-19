@@ -14,6 +14,13 @@ A responsive, lightweight web dashboard for controlling the **SunFounder PiCar-X
 - **Dog Guard Mode:** Toggleable motion detection directly integrated into the video frame pipeline.
 - **Battery & Safety Monitor:** Real-time voltage checks targeting 2S Li-ion setups ($7.15\text{V}$ critical threshold alert).
 - **Graceful Threading:** Thread-safe streaming using `GeneratorExit` handlers to prevent server deadlocks upon client disconnect.
+- **Voice Recognition (Vosk)**: Wake word (`"wake up"`) and voice commands (`"forward"`, `"reverse"`/`"back"`, `"go"`, `"left"`, `"right"`, `"horn"`/`"sound"`, `"sleep"`).
+- **Speed-Adjusted Speech (Pico2Wave + SoX + ALSA)**: Generates speech locally and adjusts playback tempo via `sox` before playing through the `robothat` ALSA device.
+- **Safety Watchdogs**: Ultrasonic obstacle emergency stop, cliff detection via grayscale sensors, central motor safety watchdog, and battery voltage check.
+
+## Audio & Voice Notes
+- Speaker gain is tuned in ALSA (`amixer -c sndrpihifiberry sset "robot-hat speaker" 94%`) to balance volume and clarity without clipping.
+- Requires `pico2wave`, `sox` (`libsox-fmt-all`), and `aplay`.
 
 ---
 
